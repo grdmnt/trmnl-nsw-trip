@@ -22,35 +22,37 @@ if (!empty($data['departures'])) {
                 <x-trmnl::content>No trips found.</x-trmnl::content>
             </x-trmnl::richtext>
         @elseif($size == 'quadrant')
-            {{-- Compact quadrant layout --}}
-            <div style="display: flex; flex-direction: column; gap: 2px;">
+            {{-- Compact quadrant layout: top-aligned, evenly distributed rows --}}
+            <div style="display: flex; flex-direction: column; justify-content: flex-start; height: 100%; padding-top: 4px;">
                 @foreach($data['departures'] as $departure)
-                    <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden;">
-                        {{-- Mode icon (only if mixed modes) --}}
-                        @if($hasMultipleModes)
-                            <span style="flex-shrink: 0; width: 16px;">
-                                @if(($departure['mode'] ?? '') == 'train')
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="2" width="16" height="14" rx="3"/><rect x="6" y="5" width="4" height="3" rx="1" fill="white"/><rect x="14" y="5" width="4" height="3" rx="1" fill="white"/><rect x="10" y="12" width="4" height="2" rx="1" fill="white"/></svg>
-                                @elseif(($departure['mode'] ?? '') == 'bus')
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="14" rx="2"/><rect x="6" y="6" width="4" height="3" rx="1" fill="white"/><rect x="14" y="6" width="4" height="3" rx="1" fill="white"/><rect x="10" y="12" width="4" height="2" rx="1" fill="white"/></svg>
-                                @else
-                                    <x-trmnl::label style="font-size: 10px;">{{ strtoupper(substr($departure['mode'] ?? '?', 0, 1)) }}</x-trmnl::label>
-                                @endif
-                            </span>
-                        @endif
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 2px 0; white-space: nowrap; overflow: hidden;">
+                        {{-- Mode icon --}}
+                        <span style="flex-shrink: 0; width: 18px; display: flex; align-items: center; justify-content: center;">
+                            @if(($departure['mode'] ?? '') == 'train')
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l2 3v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6l2-3z"/><path d="M6 11h12"/><path d="M6 16h12"/><path d="M8 21v2"/><path d="M16 21v2"/></svg>
+                            @elseif(($departure['mode'] ?? '') == 'bus')
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M6 18v2"/><path d="M18 18v2"/><path d="M6 9h12"/></svg>
+                            @elseif(($departure['mode'] ?? '') == 'metro')
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="17" rx="2"/><path d="M12 7v10"/><path d="M9 20h6"/></svg>
+                            @elseif(($departure['mode'] ?? '') == 'ferry')
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14l10 6 10-6"/><path d="M22 14L12 8 2 14"/><path d="M2 8l10-6 10 6"/><path d="M12 2v12"/></svg>
+                            @else
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+                            @endif
+                        </span>
 
                         {{-- Line --}}
                         <span style="flex-shrink: 0; min-width: 32px;">
                             <x-trmnl::label>{{ $departure['line'] ?? '?' }}</x-trmnl::label>
                         </span>
 
-                        {{-- Time --}}
+                        {{-- Departure time --}}
                         <span style="flex-shrink: 0;">
                             <x-trmnl::label>{{ $departure['dep'] ?? '-' }}</x-trmnl::label>
                         </span>
 
                         {{-- Arrow --}}
-                        <span style="flex-shrink: 0; opacity: 0.7;">
+                        <span style="flex-shrink: 0; opacity: 0.6;">
                             <x-trmnl::label>→</x-trmnl::label>
                         </span>
 
@@ -67,7 +69,7 @@ if (!empty($data['departures'])) {
                 @endforeach
             </div>
         @else
-            {{-- Full / half layouts --}}
+            {{-- Full / half layouts with adaptive table --}}
             <x-trmnl::table>
                 <thead>
                     <tr>
@@ -90,11 +92,15 @@ if (!empty($data['departures'])) {
                             @if($hasMultipleModes)
                                 <td style="text-align: center;">
                                     @if(($departure['mode'] ?? '') == 'train')
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="2" width="16" height="14" rx="3"/><rect x="6" y="5" width="4" height="3" rx="1" fill="white"/><rect x="14" y="5" width="4" height="3" rx="1" fill="white"/><rect x="10" y="12" width="4" height="2" rx="1" fill="white"/></svg>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l2 3v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6l2-3z"/><path d="M6 11h12"/><path d="M6 16h12"/></svg>
                                     @elseif(($departure['mode'] ?? '') == 'bus')
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="14" rx="2"/><rect x="6" y="6" width="4" height="3" rx="1" fill="white"/><rect x="14" y="6" width="4" height="3" rx="1" fill="white"/><rect x="10" y="12" width="4" height="2" rx="1" fill="white"/></svg>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M6 18v2"/><path d="M18 18v2"/><path d="M6 9h12"/></svg>
+                                    @elseif(($departure['mode'] ?? '') == 'metro')
+                                        <x-trmnl::label>M</x-trmnl::label>
+                                    @elseif(($departure['mode'] ?? '') == 'ferry')
+                                        <x-trmnl::label>F</x-trmnl::label>
                                     @else
-                                        <x-trmnl::label style="font-size: 10px;">{{ strtoupper(substr($departure['mode'] ?? '?', 0, 1)) }}</x-trmnl::label>
+                                        <x-trmnl::label>?</x-trmnl::label>
                                     @endif
                                 </td>
                             @endif
