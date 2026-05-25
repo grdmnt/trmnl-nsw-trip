@@ -22,8 +22,8 @@ if (!empty($data['departures'])) {
                 <x-trmnl::content>No trips found.</x-trmnl::content>
             </x-trmnl::richtext>
         @elseif($size == 'quadrant')
-            {{-- Compact quadrant layout: top-aligned, evenly distributed rows --}}
-            <div style="display: flex; flex-direction: column; justify-content: flex-start; height: 100%; padding-top: 4px;">
+            {{-- Quadrant layout: distribute rows to fill vertical space --}}
+            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding: 8px 0;">
                 @foreach($data['departures'] as $departure)
                     <div style="display: flex; align-items: center; gap: 6px; padding: 2px 0; white-space: nowrap; overflow: hidden;">
                         {{-- Mode icon --}}
@@ -122,5 +122,5 @@ if (!empty($data['departures'])) {
             </x-trmnl::table>
         @endif
     </x-trmnl::layout>
-    <x-trmnl::title-bar title="{{ $data['origin'] ?? 'NSW' }} > {{ $data['destination'] ?? 'Trip' }}" instance="updated: {{ $data['updated_at'] ?? now() }}"/>
+    <x-trmnl::title-bar title="{{ $data['origin'] ?? 'NSW' }} → {{ $data['destination'] ?? 'Trip' }}" instance="updated: {{ $data['updated_at'] ?? now() }}"/>
 </x-trmnl::view>
