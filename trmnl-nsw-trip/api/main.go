@@ -7,10 +7,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	_ "time/tzdata"
 )
 
 const (
@@ -142,8 +145,7 @@ func tripsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loc, _ := time.LoadLocation("Australia/Sydney")
-	now := time.Now().In(loc)
+	now := sydneyNow()
 
 	resp := TripsResponse{
 		Origin:      originName,
@@ -246,9 +248,17 @@ func resolveStop(query string) (string, string, error) {
 	return best.ID, name, nil
 }
 
+func sydneyNow() time.Time {
+	loc, err := time.LoadLocation("Australia/Sydney")
+	if err != nil {
+		log.Printf("Warning: could not load Sydney timezone, using UTC: %v", err)
+		return time.Now().UTC()
+	}
+	return time.Now().In(loc)
+}
+
 func fetchTrips(originID, destID string) ([]Departure, error) {
-	loc, _ := time.LoadLocation("Australia/Sydney")
-	now := time.Now().In(loc)
+	now := sydneyNow()
 
 	u, _ := url.Parse(nswAPIBase + "/trip")
 	q := u.Query()
@@ -291,9 +301,20 @@ func fetchTrips(originID, destID string) ([]Departure, error) {
 	return extractDepartures(result)
 }
 
+var trainLineRegex = regexp.MustCompile(`^(T\d+).*`)
+
+func cleanLine(line string, mode string) string {
+	line = strings.TrimSpace(line)
+	if mode == "train" || mode == "metro" {
+		if match := trainLineRegex.FindStringSubmatch(line); len(match) > 1 {
+			return match[1]
+		}
+	}
+	return line
+}
+
 func extractDepartures(result TripResponse) ([]Departure, error) {
-	loc, _ := time.LoadLocation("Australia/Sydney")
-	now := time.Now().In(loc)
+	now := sydneyNow()
 	cutoff := now.Add(-2 * time.Minute)
 
 	var departures []Departure
@@ -364,6 +385,7 @@ func extractDepartures(result TripResponse) ([]Departure, error) {
 		if err != nil {
 			continue
 		}
+		depTime = depTime.In(now.Location())
 
 		// Skip departures more than 2 minutes in the past
 		if depTime.Before(cutoff) {
@@ -391,6 +413,7 @@ func extractDepartures(result TripResponse) ([]Departure, error) {
 		if line == "" {
 			line = transportLeg.Transportation.Name
 		}
+		line = cleanLine(line, mode)
 
 		// Duration - use total journey duration
 		duration := 0
@@ -400,7 +423,9 @@ func extractDepartures(result TripResponse) ([]Departure, error) {
 		duration = duration / 60 // seconds to minutes
 
 		// Calculate duration from times if available
-		if arrTime, err := parseAPITime(arrStr); err == nil {
+		arrTime, _ := parseAPITime(arrStr)
+		if arrTime != nil {
+			arrTime = arrTime.In(now.Location())
 			duration = int(arrTime.Sub(depTime).Minutes())
 		}
 
@@ -435,17 +460,13 @@ func extractDepartures(result TripResponse) ([]Departure, error) {
 			Platform: platform,
 		})
 
-		if arrTime, err := parseAPITime(arrStr); err == nil {
+		if arrTime != nil {
 			departures[len(departures)-1].Arr = arrTime.Format("3:04pm")
 		}
 	}
 
 	// Sort by departure time
 	sort.Slice(departures, func(i, j int) bool {
-		// Parse the formatted times back for sorting (a bit hacky but works for same-day)
-		// Since they're all today, we can compare the formatted strings... actually no.
-		// Let's just use the original parse - but we lost it. Let's re-parse.
-		// Simpler: just keep original parsed times in a temp slice.
 		return extractTimeForSort(departures[i].Dep) < extractTimeForSort(departures[j].Dep)
 	})
 
