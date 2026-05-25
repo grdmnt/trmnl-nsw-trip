@@ -107,53 +107,152 @@ The service starts on `http://localhost:8080` by default.
 
 ## 2. Install the LaraPaper Plugin
 
-### Option A: Run the Seeder
+### Prerequisites
 
-Copy the seeder and view files into your LaraPaper project, then run:
+- LaraPaper running and accessible (local or Docker)
+- The Go proxy service running and reachable from LaraPaper
+- If LaraPaper is in Docker and the proxy is on the host, use the host's IP instead of `localhost`
+
+### Step 1: Copy the Blade View Template
+
+The Blade template renders the e-ink display layout. Copy it to LaraPaper's recipe views directory:
+
+```bash
+# If LaraPaper is local
+cp larapaper/views/nsw-trip.blade.php /path/to/larapaper/resources/views/recipes/
+
+# If LaraPaper is in Docker, copy into the container
+docker cp larapaper/views/nsw-trip.blade.php larapaper-container:/var/www/html/resources/views/recipes/
+```
+
+### Step 2: Create the Plugin (Choose One Method)
+
+#### Method A: Using the Seeder (Recommended)
+
+Copy the seeder file into your LaraPaper project:
 
 ```bash
 cp larapaper/NswTripPlannerSeeder.php /path/to/larapaper/database/seeders/
-cp larapaper/views/nsw-trip.blade.php /path/to/larapaper/resources/views/recipes/
 ```
 
-Then in LaraPaper:
+Then run the seeder to create the plugin automatically:
+
 ```bash
 cd /path/to/larapaper
 php artisan db:seed --class=NswTripPlannerSeeder
 ```
 
-### Option B: Manual Plugin Creation
+The seeder creates a plugin with these defaults:
+- **Name:** `NSW Trip Planner`
+- **Origin:** `West Ryde`
+- **Destination:** `Town Hall`
+- **Refresh:** Every 5 minutes
 
-1. In LaraPaper web UI, go to **Plugins**
-2. Create a new **Recipe** plugin
-3. Set:
-   - **Name:** `NSW Trip Planner`
-   - **Data Strategy:** `polling`
-   - **Polling URL:** `http://localhost:8080/trips?origin={{ origin_name | url_encode }}&destination={{ destination_name | url_encode }}`
-   - **Polling Verb:** `GET`
-   - **Refresh Interval:** `5` minutes
-   - **Render Markup View:** `recipes.nsw-trip`
-   - **Custom Fields:**
-     - `origin_name` (text, default: `West Ryde`)
-     - `destination_name` (text, default: `Town Hall`)
-4. Save and add to a playlist
+#### Method B: Manual Creation via Web UI
 
-## 3. Configure Routes
+If you prefer to create it manually or customize settings:
 
-The plugin supports multiple route instances via LaraPaper's duplicate feature:
+1. **Open LaraPaper** in your browser (e.g., `http://localhost:4567`)
+2. Go to **Plugins** in the left sidebar
+3. Click **New Plugin** (or the `+` button)
+4. Fill in the form:
 
-1. In LaraPaper, go to **Plugins**
+| Field | Value |
+|-------|-------|
+| **Name** | `NSW Trip Planner` |
+| **Strategy** | `polling` |
+| **Polling URL** | `http://localhost:8080/trips?origin={{origin_name}}&destination={{destination_name}}` |
+| **Polling Verb** | `GET` |
+| **Refresh Interval** | `5` minutes |
+| **Render Markup View** | `recipes.nsw-trip` |
+| **Icon** | `train-front` |
+
+5. Under **Custom Fields**, add two fields:
+
+   **Field 1 - Origin:**
+   - Key: `origin_name`
+   - Type: `text`
+   - Name: `Origin Stop Name`
+   - Default: `West Ryde`
+
+   **Field 2 - Destination:**
+   - Key: `destination_name`
+   - Type: `text`
+   - Name: `Destination Stop Name`
+   - Default: `Town Hall`
+
+6. Click **Save**
+
+### Step 3: Configure the Plugin
+
+1. Find your new `NSW Trip Planner` plugin in the list
+2. Click **Edit Configuration**
+3. Set your origin and destination stop names:
+   - `origin_name`: e.g., `West Ryde`, `Town Hall`, `Central`, `Parramatta`
+   - `destination_name`: e.g., `Town Hall`, `Ashfield`, `Bondi Junction`
+4. Click **Save**
+
+> **Tip:** Use the exact stop names from the TfNSW Trip Planner website. The Go proxy resolves these automatically.
+
+### Step 4: Test the Plugin
+
+1. On the plugin detail page, click **Refresh Data** (or wait for the next polling cycle)
+2. The plugin should fetch data from your Go proxy
+3. Click **Preview** to see the rendered e-ink display
+4. You should see a table with 4 departures showing Dep, Mode, Line, Arr, Dur, and Platform
+
+### Step 5: Add to a Playlist
+
+1. Go to **Playlists** in LaraPaper
+2. Create or edit a playlist
+3. Add your `NSW Trip Planner` plugin to the playlist
+4. Set the display duration (e.g., 30 seconds)
+5. Assign the playlist to your TRMNL device
+
+## 3. Multiple Routes (Up to 4)
+
+LaraPaper supports multiple plugin instances. Create additional routes by duplicating the plugin:
+
+### How to Duplicate
+
+1. Go to **Plugins**
 2. Find your `NSW Trip Planner` plugin
-3. Click **Duplicate**
-4. Edit the duplicated plugin's configuration:
-   - Change `origin_name` and `destination_name`
-5. Add all instances to a playlist
+3. Click the **Duplicate** button (or **... → Duplicate**)
+4. Give it a new name, e.g., `NSW Trip - Town Hall to West Ryde`
+5. Edit the configuration with new origin/destination values
+6. Save and add to your playlist
 
-**Suggested routes:**
-- West Ryde → Town Hall
-- West Ryde → Ashfield
-- West Ryde → Parramatta
-- Town Hall → West Ryde
+### Suggested Route Combinations
+
+| Route Name | Origin | Destination |
+|------------|--------|-------------|
+| Morning Commute | West Ryde | Town Hall |
+| Evening Return | Town Hall | West Ryde |
+| Weekend Shopping | West Ryde | Top Ryde |
+| Alternative Route | West Ryde | Ashfield |
+
+**Note:** Each duplicate instance polls the Go proxy independently. If you have 4 instances with 5-minute refresh, that's 4 API calls every 5 minutes — well within TfNSW free tier limits.
+
+## 4. Troubleshooting LaraPaper Setup
+
+### "View not found" error
+- Make sure `nsw-trip.blade.php` is in `resources/views/recipes/`
+- The view path should be exactly `recipes.nsw-trip` in the plugin settings
+
+### "Failed to fetch data" error
+- Check that the Go proxy is running: `curl http://localhost:8080/health`
+- If LaraPaper is in Docker, replace `localhost` with the host IP or container name
+- Verify the API key is set correctly in the proxy
+
+### Empty display / no departures
+- Check the plugin's **Data Payload** tab to see the raw JSON
+- Verify the stop names are correct (try them on the TfNSW website first)
+- Check the Go proxy logs for errors
+
+### Plugin shows old data
+- The refresh interval is 5 minutes by default
+- You can manually refresh from the plugin detail page
+- Check that LaraPaper's queue worker is running (for scheduled refreshes)
 
 ### Option C: Docker Compose
 
