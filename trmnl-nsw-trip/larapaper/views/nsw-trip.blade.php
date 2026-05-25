@@ -122,5 +122,9 @@ if (!empty($data['departures'])) {
             </x-trmnl::table>
         @endif
     </x-trmnl::layout>
-    <x-trmnl::title-bar title="{{ $data['origin'] ?? 'NSW' }} → {{ $data['destination'] ?? 'Trip' }}" instance="updated: {{ $data['updated_at'] ?? now() }}"/>
+    {{-- Custom footer without icon --}}
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-top: 1px solid currentColor; opacity: 0.8;">
+        <x-trmnl::label>{{ $data['origin'] ?? 'NSW' }} → {{ $data['destination'] ?? 'Trip' }}</x-trmnl::label>
+        <x-trmnl::label>U: {{ $data['updated_at'] ?? now() }}</x-trmnl::label>
+    </div>
 </x-trmnl::view>
