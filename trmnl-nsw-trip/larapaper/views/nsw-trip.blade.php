@@ -28,34 +28,34 @@
                     @foreach($data['departures'] as $departure)
                         <tr>
                             <td>
-                                <x-trmnl::label>{{ $departure['dep'] }}</x-trmnl::label>
+                                <x-trmnl::label>{{ $departure['dep'] ?? '-' }}</x-trmnl::label>
                             </td>
                             <td>
-                                @if($departure['mode'] == 'train')
+                                @if(($departure['mode'] ?? '') == 'train')
                                     <x-trmnl::label>T</x-trmnl::label>
-                                @elseif($departure['mode'] == 'bus')
+                                @elseif(($departure['mode'] ?? '') == 'bus')
                                     <x-trmnl::label>B</x-trmnl::label>
-                                @elseif($departure['mode'] == 'metro')
+                                @elseif(($departure['mode'] ?? '') == 'metro')
                                     <x-trmnl::label>M</x-trmnl::label>
-                                @elseif($departure['mode'] == 'light_rail')
+                                @elseif(($departure['mode'] ?? '') == 'light_rail')
                                     <x-trmnl::label>L</x-trmnl::label>
-                                @elseif($departure['mode'] == 'ferry')
+                                @elseif(($departure['mode'] ?? '') == 'ferry')
                                     <x-trmnl::label>F</x-trmnl::label>
                                 @else
                                     <x-trmnl::label>?</x-trmnl::label>
                                 @endif
                             </td>
                             <td>
-                                <x-trmnl::label>{{ $departure['line'] }}</x-trmnl::label>
+                                <x-trmnl::label>{{ $departure['line'] ?? '?' }}</x-trmnl::label>
                             </td>
                             <td>
-                                <x-trmnl::label>{{ $departure['arr'] ?: '-' }}</x-trmnl::label>
+                                <x-trmnl::label>{{ $departure['arr'] ?? '-' }}</x-trmnl::label>
                             </td>
                             <td>
-                                <x-trmnl::label>{{ $departure['duration'] }}m</x-trmnl::label>
+                                <x-trmnl::label>{{ $departure['duration'] ?? '?' }}m</x-trmnl::label>
                             </td>
                             <td>
-                                <x-trmnl::label>{{ $departure['platform'] ?: '-' }}</x-trmnl::label>
+                                <x-trmnl::label>{{ $departure['platform'] ?? '-' }}</x-trmnl::label>
                             </td>
                         </tr>
                     @endforeach
