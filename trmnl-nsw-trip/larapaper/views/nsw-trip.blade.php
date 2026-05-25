@@ -9,7 +9,7 @@
         @else
             {{-- Route header --}}
             <div style="margin-bottom: 8px;">
-                <x-trmnl::title>{{ $data['origin'] ?? 'Origin' }} &rarr; {{ $data['destination'] ?? 'Dest' }}</x-trmnl::title>
+                <x-trmnl::title>{{ $data['origin'] ?? 'Origin' }} > {{ $data['destination'] ?? 'Dest' }}</x-trmnl::title>
             </div>
 
             {{-- Departures table --}}
@@ -32,9 +32,11 @@
                             </td>
                             <td style="text-align: center;">
                                 @if(($departure['mode'] ?? '') == 'train')
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><path d="M8 3h8l2 3v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6l2-3z"/><path d="M6 11h12"/><path d="M6 16h12"/><path d="M8 21v2"/><path d="M16 21v2"/><path d="M6 6h12"/></svg>
+                                    {{-- Filled train icon (high contrast for e-ink) --}}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: inline-block; vertical-align: middle;"><rect x="4" y="2" width="16" height="14" rx="3"/><rect x="6" y="5" width="4" height="3" rx="1" fill="white"/><rect x="14" y="5" width="4" height="3" rx="1" fill="white"/><rect x="10" y="12" width="4" height="2" rx="1" fill="white"/><path d="M2 16h20v2H2z"/><circle cx="7" cy="21" r="2"/><circle cx="17" cy="21" r="2"/></svg>
                                 @elseif(($departure['mode'] ?? '') == 'bus')
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M6 18v2"/><path d="M18 18v2"/><path d="M6 10h12"/></svg>
+                                    {{-- Filled bus icon (high contrast for e-ink) --}}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: inline-block; vertical-align: middle;"><rect x="3" y="3" width="18" height="14" rx="2"/><rect x="6" y="6" width="4" height="3" rx="1" fill="white"/><rect x="14" y="6" width="4" height="3" rx="1" fill="white"/><rect x="10" y="12" width="4" height="2" rx="1" fill="white"/><circle cx="7" cy="21" r="2"/><circle cx="17" cy="21" r="2"/></svg>
                                 @elseif(($departure['mode'] ?? '') == 'metro')
                                     <x-trmnl::label>M</x-trmnl::label>
                                 @elseif(($departure['mode'] ?? '') == 'light_rail')
@@ -63,5 +65,5 @@
             </x-trmnl::table>
         @endif
     </x-trmnl::layout>
-    <x-trmnl::title-bar title="{{ $data['origin'] ?? 'NSW' }} &rarr; {{ $data['destination'] ?? 'Trip' }}" instance="updated: {{ $data['updated_at'] ?? now() }}"/>
+    <x-trmnl::title-bar title="{{ $data['origin'] ?? 'NSW' }} > {{ $data['destination'] ?? 'Trip' }}" instance="updated: {{ $data['updated_at'] ?? now() }}"/>
 </x-trmnl::view>
